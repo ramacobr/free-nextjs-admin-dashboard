@@ -156,18 +156,18 @@ export default function RecentOrders() {
               >
                 Price
               </TableCell>
-              {/* <TableCell
+              <TableCell
                 isHeader
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
                 Status
-              </TableCell> */}
+              </TableCell>
             </TableRow>
           </TableHeader>
 
           {/* Table Body */}
 
-          {/* <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
             {tableData.map((product) => (
               <TableRow key={product.id} className="">
                 <TableCell className="py-3">
@@ -210,40 +210,6 @@ export default function RecentOrders() {
                   >
                     {product.status}
                   </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody> */}
-
-          <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {tableDataQuarkus.map((product) => (
-              <TableRow key={product.id} className="">
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-3">
-                    {/* <div className="h-[50px] w-[50px] overflow-hidden rounded-md">
-                      <Image
-                        width={50}
-                        height={50}
-                        src={product.image}
-                        className="h-[50px] w-[50px]"
-                        alt={product.name}
-                      />
-                    </div> */}
-                    <div>
-                      <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {product.name}
-                      </p>
-                      <span className="text-gray-500 text-theme-xs dark:text-gray-400">
-                        {product.id}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.description} 
-                </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.price}
                 </TableCell>
               </TableRow>
             ))}
