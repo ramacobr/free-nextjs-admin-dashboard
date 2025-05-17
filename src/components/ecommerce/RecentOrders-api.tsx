@@ -1,3 +1,6 @@
+'use client';
+
+
 import {
   Table,
   TableBody,
@@ -7,17 +10,17 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
+import { use, useState, useEffect } from "react";
 
 // Define the TypeScript interface for the table rows
 interface Product {
-  id: number; // Unique identifier for each product
-  name: string; // Product name
-  variants: string; // Number of variants (e.g., "1 Variant", "2 Variants")
-  category: string; // Category of the product
-  price: string; // Price of the product (as a string with currency symbol)
-  // status: string; // Status of the product
-  image: string; // URL or path to the product image
-  status: "Delivered" | "Pending" | "Canceled"; // Status of the product
+  id: number;
+  name: string;
+  variants: string;
+  category: string;
+  price: string;
+  image: string;
+  status: "Delivered" | "Pending" | "Canceled";
 }
 
 interface quarkProduct {
@@ -27,59 +30,65 @@ interface quarkProduct {
     price: number;
 }
 
-const response = await fetch('http://localhost:8080/v1/products')
-const tableDataQuarkus: quarkProduct[] = await response.json()
+type SortField = 'name' | 'description' | 'price';
+type SortOrder = 'asc' | 'desc';
 
-// Define the table data using the interface
-const tableData: Product[] = [
-  {
-    id: 1,
-    name: "MacBook Pro 13 M4”",
-    variants: "2 Variants",
-    category: "Laptop",
-    price: "$2399.00",
-    status: "Delivered",
-    image: "/images/product/product-01.jpg", // Replace with actual image URL
-  },
-  {
-    id: 2,
-    name: "Apple Watch Ultra",
-    variants: "1 Variant",
-    category: "Watch",
-    price: "$879.00",
-    status: "Pending",
-    image: "/images/product/product-02.jpg", // Replace with actual image URL
-  },
-  {
-    id: 3,
-    name: "iPhone 15 Pro Max",
-    variants: "2 Variants",
-    category: "SmartPhone",
-    price: "$1869.00",
-    status: "Delivered",
-    image: "/images/product/product-03.jpg", // Replace with actual image URL
-  },
-  {
-    id: 4,
-    name: "iPad Pro 3rd Gen",
-    variants: "2 Variants",
-    category: "Electronics",
-    price: "$1699.00",
-    status: "Canceled",
-    image: "/images/product/product-04.jpg", // Replace with actual image URL
-  },
-  {
-    id: 5,
-    name: "AirPods Pro 2nd Gen",
-    variants: "1 Variant",
-    category: "Accessories",
-    price: "$240.00",
-    status: "Delivered",
-    image: "/images/product/product-05.jpg", // Replace with actual image URL
-  },
-];
+const baseAPIURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/v1/products";
 
 export default function RecentOrders() {
+  const [tableDataQuarkus, setTableDataQuarkus] = useState<quarkProduct[]>([]);
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  useEffect(() => {
+    fetch(`${baseAPIURL}`)
+      .then((res) => res.json())
+      .then((data) => {
+        // setTableDataQuarkus(data);
+        const transformedData = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+        }));
+        setTableDataQuarkus(transformedData);
+        console.log('Transformed Data:', transformedData);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      }
+    );
+      setSortOrder('asc');
+    }, []);
+
+  const sortedData = [...tableDataQuarkus].sort((a, b) => {
+    const multiplier = sortOrder === 'asc' ? 1 : -1;
+    
+    switch (sortField) {
+      case 'name':
+        return multiplier * a.name.localeCompare(b.name);
+      case 'description':
+        return multiplier * a.description.localeCompare(b.description);
+      case 'price':
+        return multiplier * (a.price - b.price);
+      default:
+        return 0;
+    }
+  });
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return '↕️';
+    return sortOrder === 'asc' ? '⬆' : '⬇';
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -135,112 +144,50 @@ export default function RecentOrders() {
       </div>
       <div className="max-w-full overflow-x-auto">
         <Table>
-          {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Products
+              <TableCell isHeader className="py-3">
+                <button
+                  onClick={() => handleSort('name')}
+                  className="flex items-center gap-1 font-medium text-gray-500 text-theme-xs dark:text-gray-400 cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Products {getSortIcon('name')}
+                </button>
               </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Category
+              <TableCell isHeader className="py-3">
+                <button
+                  onClick={() => handleSort('description')}
+                  className="flex items-center gap-1 font-medium text-gray-500 text-theme-xs dark:text-gray-400 cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Category {getSortIcon('description')}
+                </button>
               </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Price
+              <TableCell isHeader className="py-3">
+                <button
+                  onClick={() => handleSort('price')}
+                  className="flex items-center gap-1 font-medium text-gray-500 text-theme-xs dark:text-gray-400 cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Price {getSortIcon('price')}
+                </button>
               </TableCell>
-              {/* <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Status
-              </TableCell> */}
             </TableRow>
           </TableHeader>
 
-          {/* Table Body */}
-
-          {/* <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {tableData.map((product) => (
-              <TableRow key={product.id} className="">
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-[50px] w-[50px] overflow-hidden rounded-md">
-                      <Image
-                        width={50}
-                        height={50}
-                        src={product.image}
-                        className="h-[50px] w-[50px]"
-                        alt={product.name}
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {product.name}
-                      </p>
-                      <span className="text-gray-500 text-theme-xs dark:text-gray-400">
-                        {product.variants}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.price}
-                </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.category}
-                </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  <Badge
-                    size="sm"
-                    color={
-                      product.status === "Delivered"
-                        ? "success"
-                        : product.status === "Pending"
-                        ? "warning"
-                        : "error"
-                    }
-                  >
-                    {product.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody> */}
-
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {tableDataQuarkus.map((product) => (
-              <TableRow key={product.id} className="">
+            {sortedData.map((product) => (
+              <TableRow key={product.id}>
                 <TableCell className="py-3">
                   <div className="flex items-center gap-3">
-                    {/* <div className="h-[50px] w-[50px] overflow-hidden rounded-md">
-                      <Image
-                        width={50}
-                        height={50}
-                        src={product.image}
-                        className="h-[50px] w-[50px]"
-                        alt={product.name}
-                      />
-                    </div> */}
                     <div>
                       <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                        {/* {product.id} -  */}
                         {product.name}
                       </p>
-                      <span className="text-gray-500 text-theme-xs dark:text-gray-400">
-                        {product.id}
-                      </span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {product.description} 
+                  {product.description}
                 </TableCell>
                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                   {product.price}
